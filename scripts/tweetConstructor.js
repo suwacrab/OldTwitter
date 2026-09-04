@@ -366,9 +366,7 @@ async function constructQuotedTweet(
                 }
                 mediaElement.src = base_url;
             } else {
-                mediaElement.src = m.video_info.variants.find(
-                    (v) => v.content_type === "video/mp4"
-                ).url;
+                mediaElement.src = getPreferredVideoUrl(m.video_info.variants);
             }
             mediaElement.classList.add(
                 "tweet-media-element",

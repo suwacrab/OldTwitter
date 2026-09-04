@@ -1866,11 +1866,11 @@ class TweetViewer {
                                                                         !vars.disableDataSaver
                                                                       ? "?name=small"
                                                                       : "")
-                                                                : m.video_info.variants.find(
-                                                                      (v) =>
-                                                                          v.content_type ===
-                                                                          "video/mp4"
-                                                                  ).url
+                                                                : getPreferredVideoUrl(
+                                                                      m
+                                                                          .video_info
+                                                                          .variants
+                                                                  )
                                                         }" class="tweet-media-element tweet-media-element-quote ${
                                                             m.type ===
                                                             "animated_gif"

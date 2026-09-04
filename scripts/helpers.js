@@ -498,6 +498,50 @@ function escapeHTML(unsafe) {
         .replaceAll(">", "&gt;"));
 }
 
+// pick a video/mp4 URL using saved preferred quality, highest quality, or data-saver lowest.
+function getPreferredVideoUrl(variants) {
+    let sorted = variants.slice().sort((a, b) => {
+        if (!b.bitrate) return -1;
+        return b.bitrate - a.bitrate;
+    });
+    let withBitrate = sorted.filter((v) => v.bitrate);
+    if (!withBitrate.length) {
+        let fallback = sorted.find((v) => v.content_type === "video/mp4");
+        return (fallback || sorted[0]).url;
+    }
+    if (typeof vars.savePreferredQuality !== "boolean") {
+        chrome.storage.sync.set({ savePreferredQuality: true }, () => {});
+        vars.savePreferredQuality = true;
+    }
+    if (localStorage.preferredQuality && vars.savePreferredQuality) {
+        return withBitrate.reduce((prev, curr) => {
+            return Math.abs(
+                parseInt(curr.url.match(/\/(\d+)x/)[1]) -
+                    parseInt(localStorage.preferredQuality)
+            ) <
+                Math.abs(
+                    parseInt(prev.url.match(/\/(\d+)x/)[1]) -
+                        parseInt(localStorage.preferredQuality)
+                )
+                ? curr
+                : prev;
+        }).url;
+    }
+    if (
+        window.navigator &&
+        navigator.connection &&
+        navigator.connection.type === "cellular" &&
+        !vars.disableDataSaver
+    ) {
+        return withBitrate.reduce((prev, curr) => {
+            return parseInt(curr.bitrate) < parseInt(prev.bitrate)
+                ? curr
+                : prev;
+        }).url;
+    }
+    return withBitrate[0].url;
+}
+
 function html(strings, ...values) {
     let str = "";
     strings.forEach((string, i) => {
